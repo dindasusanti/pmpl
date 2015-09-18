@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from lists.models import Item, List
 from lists.views import home_page
+from lists.views import view_list
 
 class HomePageTest(TestCase):
 
@@ -25,17 +26,18 @@ class HomePageTest(TestCase):
 		response = home_page(request)
 
 		self.assertEqual(Item.objects.count(),0)
-		self.assertIn('Yey, waktunya berlibur', response.content.decode())
+		self.assertContains(response, 'Yey, waktunya berlibur')
+
 
 	def test_home_page_display_comment_if_To_Do_list_less_than_5(self):
 		list_ = List.objects.create()
 		Item.objects.create(text='itemey 1', list=list_)
 		
 		request = HttpRequest()
-		response = home_page(request)
+		response = view_list(request, list_.id)
 
-		self.assertLess(Item.objects.count() , 5)
-		self.assertIn('Sibuk tapi santai', response.content.decode())
+		self.assertLess(Item.objects.filter(list_id=list_.id).count() , 5)
+		self.assertContains(response, 'Sibuk tapi santai')
 	
 	def test_home_page_display_comment_if_To_Do_list_greater_equal_than_5(self):
 		list_ = List.objects.create()
@@ -46,10 +48,10 @@ class HomePageTest(TestCase):
 		Item.objects.create(text='item 5', list=list_)
 
 		request = HttpRequest()
-		response = home_page(request)
+		response = view_list(request, list_.id)
 	
-		self.assertGreaterEqual(Item.objects.count(), 5)
-		self.assertIn('Oh tidak', response.content.decode())
+		self.assertGreaterEqual(Item.objects.filter(list_id=list_.id).count(), 5)
+		self.assertContains(response, 'Oh tidak')
 
 class ListAndItemModelsTest(TestCase):
 
